@@ -1,33 +1,440 @@
-%TODO Introdução
+\documentclass[12pt,a4paper]{article}
 
+% encoding / language
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazilian]{babel}
 
+% misc
+\usepackage{enumitem}
+\usepackage{fancyvrb}
+\usepackage[dvipsnames]{xcolor}
 
-%TODO Seção "Processos"
+% citations
+\usepackage{csquotes}
+\usepackage[style=abnt,maxbibnames=5]{biblatex}
+\addbibresource{ref.bib}
 
-%TODO 2021-09: escalonação de processos.
+% spacing
+\usepackage{indentfirst}
+\frenchspacing
+\setlength{\parindent}{1.25cm}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage[top=3cm,bottom=2cm,left=3cm,right=2cm]{geometry}
 
+% font
+\usepackage[scaled]{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{sfmath}
 
+% hypertext & pdf
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    urlcolor=[RGB]{0, 0, 130},
+    linkcolor=.,
+    citecolor=.,
+    pdftitle={Enade SO}
+}
+\urlstyle{same}
 
-%TODO Seção "Grência de Memória"
+\newenvironment{question}[1]{%
+    \pdfbookmark[3]{Questão #1}{q:#1}
+    \label{q:#1}
+    \bigskip\par\noindent
+    \textbf{Questão #1} \dotfill
+    \medskip\par\nopagebreak\noindent
+    \ignorespaces
+}{%
+    \noindent\dotfill\medskip
+}
 
-%TODO 2014-11: tabela de páginas.
+\newcommand{\listtitle}[1]{%
+    \medskip\par\noindent
+    {\small\textbf{\underline{#1:}}}%
+    \par\nopagebreak\noindent
+}
 
-%TODO 2017-29: substituição de páginas.
+\renewcommand{\theFancyVerbLine}{\ttfamily\color{gray}\arabic{FancyVerbLine}}
 
+\title{Rascunho}
+\author{
+    \small\href{https://github.com/eemidioo/enade-so}{Código-fonte GitHub}%
+    \thanks{\url{https://github.com/eemidioo/enade-so}}
+}
+\date{\today}
 
+\begin{document}
+\maketitle
+2ª atividade da disciplina optativa ENADE-2026.2, do Professor Ricardo Azevedo Moreira da Silva.
+Este documento é destinado a estudantes de Ciência da Computação
+e contém um resumo de conceitos fundamentais de Sistemas Operacionais,
+baseado nas questões objetivas selecionadas das três provas de 2014, 2017 e 2021 do \citefield{enade}{title}.
 
-%TODO Seção "Threads"
+\section{Introdução}
+O Sistema Operacional (SO) é o software fundamental que gerencia o hardware do computador e fornece uma base para a execução de programas.
+Ele atua como um gerenciador de recursos, distribuindo tempo de processador, memória e dispositivos de entrada e saída
+de forma segura e eficiente \parencite[cap.~1]{tanenbaum2016}.
 
-%TODO 2014-20: threads.
+Quando um computador executa múltiplas tarefas de forma intercalada,
+dizemos que há multiprogramação e que estamos lidando com \emph{sistemas concorrentes}.
+Nesse cenário, o SO gerencia a ilusão de que vários processos estão rodando ao mesmo tempo alternando rapidamente a CPU entre eles.
+Com o advento dos processadores de múltiplos núcleos, alcançamos também o \emph{processamento paralelo},
+onde instruções de diferentes processos ou threads são executadas literalmente no mesmo instante de tempo físico,
+em núcleos físicos distintos \parencite[cap.~2]{tanenbaum2016}.
+O gerenciamento adequado da concorrência e do paralelismo é um dos pilares modernos do design de sistemas operacionais.
 
-%TODO 2014-21: thread lock em Java.
+\section{Processos}
+Um processo é, em essência, um programa em execução.
+Como os recursos do computador são limitados e múltiplos processos competem pela CPU,
+o sistema operacional utiliza um \emph{escalonador} para decidir qual processo deve ser executado a seguir
+e por quanto tempo \parencite[cap.~2]{tanenbaum2016}.
+Diferentes ambientes exigem diferentes estratégias de escalonamento.
 
-%TODO 2017-31: threads em C.
+\begin{question}{2021-09}
+Quando um computador é multiprogramado, ele geralmente tem múltiplos processos ou \textit{threads} que competem pela CPU ao mesmo tempo.
+Essa situação ocorre sempre que dois ou mais processos estão simultaneamente no estado pronto.
+Se somente uma CPU se encontrar disponível, deverá ser feita uma escolha de qual processo executar em seguida.
+A parte do sistema operacional que faz a escolha é chamada de \emph{escalonador},
+e o algoritmo que ele usa é o \emph{algoritmo de escalonamento}.
+\vspace{-0.5em}
+\begin{flushright}
+    \scriptsize
+    TANENBAUM, A. S. Sistemas Operacionais Modernos.\\
+    3. ed., São Paulo: Pearson, 2010 (adaptado).
+\end{flushright}
+Considerando que em ambientes diferentes são necessários algoritmos diferentes de escalonamento,
+garantindo assim que seja maximizado o uso de seus recursos,
+assinale a opção que apresenta um algoritmo de escalonamento seguido do tipo de ambiente no qual deva ser implementado.
+\begin{spacing}{0.9}
+\begin{small}
+\begin{enumerate}[label=\Alph*)]
+    \item Primeiro a chegar, último a sair (\textit{first in, last out} - FILO); propício para sistemas de tempo real.
+    \item Escalonamento por taxas monotônicas (\textit{rate monotonic scheduling} - RMS); propício para sistemas em lote.
+    \item Tarefa mais curta primeiro; propício para sistemas interativos.
+    \item Escalonamento por chave circular (\textit{round-robin}); propício para sistemas de tempo real.
+    \item Escalonamento por prioridades; propício para sistemas interativos.
+\end{enumerate}
+\end{small}
+\end{spacing}
+\end{question}
 
+Para resolver essa questão, devemos relembrar as categorias de escalonamento citadas por \textcite[seç.~2.4]{tanenbaum2016}.
+Em sistemas em lote (\textit{batch}), onde não há usuários esperando resposta imediata,
+algoritmos como ``Primeiro a chegar, primeiro a ser servido (FIFO)'' e ``Tarefa mais curta primeiro (SJF)'' são adequados.
+Em sistemas interativos, onde o tempo de resposta é crucial, utilizam-se o \textit{Round-Robin} (chave circular) e o Escalonamento por Prioridades.
+Em sistemas de tempo real, o RMS (\textit{Rate Monotonic Scheduling}) e o EDF (\textit{Earliest Deadline First}) são os mais propícios.
 
+Analisando as opções: a opção A cita FILO, o que seria uma pilha, inadequado para escalonamento justo;
+a opção B inverte RMS (tempo real) para sistemas em lote;
+a opção C sugere tarefa mais curta para sistemas interativos (na verdade, é para lote);
+a opção D sugere Round-Robin para tempo real (o que não garante cumprimento de prazos rígidos).
+A alternativa correta é a E, pois o escalonamento por prioridades permite que tarefas interativas importantes tenham a resposta rápida necessária.
 
-%TODO Seção "Concorrência"
+\section{Gerência de memória}
+O gerenciamento de memória é responsável por alocar o espaço necessário para os processos
+e proteger a memória de um processo contra interferências de outros.
+A técnica moderna mais utilizada é a \emph{paginação}, que divide a memória lógica em blocos de tamanho fixo (páginas)
+e a memória física em blocos equivalentes (quadros ou \textit{frames}),
+resolvendo problemas graves como a fragmentação externa \parencite[cap.~3]{tanenbaum2016}.
 
-%TODO 2017-35: acesso concorrente.
+\begin{question}{2014-11}
+Considere um esquema de gerência de memória por paginação simples, onde a memória física é dividida
+em quadros (\textit{frames}) de 1 Kbyte e endereçada por byte.
+Os espaços de endereçamento dos processos são múltiplos de 1 Kbyte.
+A tabela de páginas para um determinado processo P é apresentada a seguir,
+em que o primeiro bit (BV) mostra se a página é válida (1) ou inválida (0).
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Página} & \textbf{BV} & \textbf{Quadro (\textit{frame})} \\
+\hline
+0 & 1 & 0010 \\
+1 & 1 & 0100 \\
+2 & 1 & 0001 \\
+3 & 1 & 0111 \\
+4 & 1 & 0000 \\
+5 & 1 & 1101 \\
+6 & 0 & 1111 \\
+7 & 0 & 0110 \\
+\hline
+\end{tabular}
+\end{center}
+Com base na tabela apresentada, avalie as afirmações a seguir.
+\begin{enumerate}[label=\Roman*.]
+    \item O endereço físico é composto por 13 bits.
+    \item O esquema de gerência de memória apresentado reduz a fragmentação externa.
+    \item A tradução do endereço lógico 01100000000110 para endereço físico causa exceção.
+\end{enumerate}
+É correto o que se afirma em
+\begin{spacing}{0.9}
+\begin{small}
+\begin{enumerate}[label=\Alph*)]
+    \item I, apenas.
+    \item II, apenas.
+    \item I e III, apenas.
+    \item II e III, apenas.
+    \item I, II e III.
+\end{enumerate}
+\end{small}
+\end{spacing}
+\end{question}
 
-%TODO 2021-17: exclusão mútua, região crítica, etc.
+A afirmação I é falsa.
+O tamanho de cada quadro é de 1 Kbyte, o que requer 10 bits de deslocamento ($2^{10} = 1024$ bytes).
+Observando a tabela, o número do quadro utiliza 4 bits (de \texttt{0000} a \texttt{1111}).
+Portanto, o endereço físico completo é a junção dos 4 bits do quadro com os 10 bits de deslocamento, totalizando 14 bits, e não 13.
+
+A afirmação II é verdadeira.
+A paginação divide a memória em blocos de tamanho fixo, permitindo que qualquer quadro livre receba uma página de qualquer processo.
+Isso elimina completamente a fragmentação externa \parencite[seç.~3.3]{tanenbaum2016}.
+
+A afirmação III é verdadeira.
+O endereço lógico \texttt{01100000000110} possui 14 bits. Como o deslocamento deve ter 10 bits (\texttt{0000000110}),
+os 4 bits superiores indicam a página virtual: \texttt{0110}, que equivale ao número 6 em decimal.
+Consultando a tabela para a página 6, vemos que o bit de validade (BV) é 0.
+O acesso a uma página com bit de validade igual a zero gera uma interrupção no sistema operacional conhecida
+como falta de página (ou \textit{page fault}), que é um tipo de exceção \parencite[seç.~3.3]{tanenbaum2016}.
+A opção correta é a D.
+
+\begin{question}{2017-29}
+O projetista do gerenciador de memória de um novo sistema operacional precisa escolher
+entre os algoritmos de substituição de páginas FIFO (\textit{First In First Out}) e LRU (\textit{Least Recently Used}).
+Para isso, avaliou o número de faltas de página obtidas em ambos os algoritmos para o tamanho de memória de 4 páginas,
+utilizando a sequência de acessos às páginas 1-2-3-4-1-2-5-1-2-3-4-5 de um processo e memória inicialmente vazia.\\\\
+Com base nessa simulação, avalie as asserções a seguir e a relação proposta entre elas.
+\begin{enumerate}[label=\Roman*.]
+    \item Na simulação proposta, é possível observar que os algoritmos FIFO e LRU apresentam o mesmo desempenho.
+\end{enumerate}
+\begin{center} \textbf{PORQUE} \end{center}
+\begin{enumerate}[label=\Roman*., start=2]
+    \item Os parâmetros utilizados na simulação são insuficientes para determinar a diferença de funcionamento entre os algoritmos.
+\end{enumerate}
+A respeito dessas asserções, assinale a opção correta.
+\begin{spacing}{0.9}
+\begin{small}
+\begin{enumerate}[label=\Alph*)]
+    \item As asserções I e II são proposições verdadeiras, e a II é uma justificativa correta da I.
+    \item As asserções I e II são proposições verdadeiras, mas a II não é uma justificativa correta da I.
+    \item A asserção I é uma proposição verdadeira, e a II é uma proposição falsa.
+    \item A asserção I é uma proposição falsa, e a II é uma proposição verdadeira.
+    \item As asserções I e II são proposições falsas.
+\end{enumerate}
+\end{small}
+\end{spacing}
+\end{question}
+
+Para avaliar as asserções, precisamos simular ambos os algoritmos com 4 quadros e a sequência 1, 2, 3, 4, 1, 2, 5, 1, 2, 3, 4, 5.
+No FIFO, a página que está na memória há mais tempo é a escolhida para ser removida:
+\begin{footnotesize}
+\begin{itemize}
+    \item 1, 2, 3, 4: causam 4 faltas (quadros ficam cheios: [1, 2, 3, 4]).
+    \item 1, 2: acertos (já estão na memória).
+    \item 5: falta, substitui o 1 (quadros: [5, 2, 3, 4]).
+    \item 1: falta, substitui o 2 (quadros: [5, 1, 3, 4]).
+    \item 2: falta, substitui o 3 (quadros: [5, 1, 2, 4]).
+    \item 3: falta, substitui o 4 (quadros: [5, 1, 2, 3]).
+    \item 4: falta, substitui o 5 (quadros: [4, 1, 2, 3]).
+    \item 5: falta, substitui o 1 (quadros: [4, 5, 2, 3]).
+\end{itemize}
+\end{footnotesize}
+Total no FIFO: 10 faltas de página.
+No LRU, a página que não é utilizada há mais tempo é removida:
+\begin{footnotesize}
+\begin{itemize}
+    \item 1, 2, 3, 4: causam 4 faltas (quadros: [1, 2, 3, 4]).
+    \item 1, 2: acertos (1 e 2 passam a ser as mais recentemente usadas).
+    \item 5: falta, substitui o 3 (quadros: [1, 2, 5, 4]).
+    \item 1, 2: acertos (novamente, são as mais recentes).
+    \item 3: falta, substitui o 4 (quadros: [1, 2, 5, 3]).
+    \item 4: falta, substitui o 5 (quadros: [1, 2, 4, 3]).
+    \item 5: falta, substitui o 1 (quadros: [5, 2, 4, 3]).
+\end{itemize}
+\end{footnotesize}
+Total no LRU: 8 faltas de página \parencite[seç.~3.4]{tanenbaum2016}.
+
+A asserção I é falsa, pois os desempenhos foram diferentes (10 faltas no FIFO contra 8 no LRU).
+A asserção II também é falsa, uma vez que a sequência de acessos e a quantidade de quadros fornecidos
+no enunciado são parâmetros perfeitamente suficientes para realizar as simulações e constatar a diferença.
+Portanto, a opção E é a correta.
+
+\section{Threads (linhas de execução)}
+Enquanto um processo tradicional possui um único fluxo de controle e um espaço de endereçamento independente,
+as \textit{threads} permitem múltiplos fluxos de execução dentro do mesmo espaço de endereçamento de um processo.
+Isso facilita o compartilhamento de dados, mas traz desafios profundos de sincronização,
+sendo necessário o uso de mecanismos de exclusão mútua \parencite[cap.~2]{tanenbaum2016}.
+
+\begin{question}{2014-20}
+Um processo tem um ou mais fluxos de execução, normalmente denominados apenas por \textit{threads}.
+\begin{quote}
+	[Figura 1 apresenta 3 retângulos distintos identificados como Processo 1, Processo 2 e Processo 3,
+	cada um contendo uma única \textit{thread} desenhada em seu próprio espaço de usuário isolado.]
+	[Figura 2 apresenta 1 retângulo identificado como Processo,
+	contendo três \textit{threads} juntas no mesmo espaço de usuário.]
+\end{quote}
+A partir das figuras 1 e 2 apresentadas, avalie as afirmações a seguir.
+\begin{enumerate}[label=\Roman*.]
+    \item Tanto na figura 1 quanto na figura 2, existem três \textit{threads} que utilizam o mesmo espaço de endereçamento.
+    \item Tanto na figura 1 quanto na figura 2, existem três \textit{threads} que utilizam três espaços de endereçamento distintos.
+    \item Na figura 2, existe um processo com um único espaço de endereçamento e três \textit{threads} de controle.
+    \item Na figura 1, existem três processos tradicionais, cada qual tem seu espaço de endereçamento e uma única \textit{thread} de controle.
+    \item As \textit{threads} permitem que várias execuções ocorram no mesmo ambiente de processo de forma independente uma das outras.
+\end{enumerate}
+É correto apenas o que se afirma em
+\begin{spacing}{0.9}
+\begin{small}
+\begin{enumerate}[label=\Alph*)]
+    \item I, II e III.
+    \item I, II e IV.
+    \item I, III e V.
+    \item II, IV e V.
+    \item III, IV e V.
+\end{enumerate}
+\end{small}
+\end{spacing}
+\end{question}
+
+A afirmação I é falsa, pois na figura 1 os processos são isolados, não compartilhando a mesma memória.
+A afirmação II é falsa, pois na figura 2 as três \textit{threads} dividem o mesmo espaço de endereçamento.
+A afirmação III é verdadeira, descrevendo precisamente o modelo de concorrência por \textit{threads} em um processo demonstrado na figura 2.
+A afirmação IV é verdadeira, descrevendo o modelo clássico multiprogramado representado na figura 1.
+A afirmação V também é verdadeira e define a premissa conceitual fundamental das \textit{threads} \parencite[seç.~2.2]{tanenbaum2016}.
+A opção correta é a E.
+
+\begin{question}{2014-21}
+O fragmento de código a seguir, escrito em Java, descreve duas implementações diferentes para um \textit{lock}.
+Ambas possuem um método denominado \texttt{acquire} e um método denominado \texttt{release}.
+\begin{minipage}{0.48\textwidth}
+\begin{Verbatim}
+class LockA {
+    private int turn = 0
+    public void acquire(int tid) {
+        while (turn == (1 - tid));
+    }
+    public void release(int tid) {
+        turn = (1 - tid);
+    }
+}
+\end{Verbatim}
+\end{minipage}
+\hfill
+\begin{minipage}{0.48\textwidth}
+\begin{Verbatim}
+class LockB {
+    public void acquire() {
+        disableInterrupts();
+    }
+    public void release() {
+        enableInterrupts();
+    }
+}
+\end{Verbatim}
+\end{minipage}
+
+Considera-se que as duas implementações são utilizadas por no máximo duas \textit{threads} e o código foi desenvolvido
+para ser utilizado em uma máquina com um ou dois processadores.
+A partir das informações apresentadas, avalie as afirmações a seguir.
+\begin{enumerate}[label=\Roman*.]
+    \item A implementação de LockA garante progresso.
+    \item A implementação de LockB garante progresso.
+    \item A implementação de LockA garante exclusão mútua.
+    \item A implementação de LockB garante exclusão mútua.
+\end{enumerate}
+É correto apenas o que se afirma em
+\begin{spacing}{0.9}
+\begin{small}
+\begin{enumerate}[label=\Alph*)]
+    \item I e II.
+    \item II e III.
+    \item III e IV.
+    \item I, II e IV.
+    \item I, III e IV.
+\end{enumerate}
+\end{small}
+\end{spacing}
+\end{question}
+
+O LockA implementa o método de alternância estrita.
+\textcite[seç.~2.3.2]{tanenbaum2016} demonstram que esse método garante a exclusão mútua (Afirmação III verdadeira),
+pois o valor da variável \texttt{turn} dita explicitamente quem pode entrar.
+No entanto, ela viola o princípio do progresso (Afirmação I falsa).
+Se a thread 0 sair da região crítica e atualizar \texttt{turn} para 1,
+mas a thread 1 não tiver interesse em entrar na região crítica, a thread 0 ficará bloqueada para sempre na próxima tentativa,
+mesmo a região estando livre.
+
+O LockB tenta garantir a exclusão mútua desabilitando as interrupções de hardware.
+Essa técnica não impede que a thread tome a posse da trava (Afirmação II verdadeira, há progresso),
+mas falha miseravelmente na garantia de exclusão mútua em sistemas com mais de um processador (Afirmação IV falsa).
+O enunciado ressalta que o sistema pode ter dois processadores.
+Desabilitar as interrupções afeta apenas o processador que executou a instrução;
+a thread rodando no outro processador pode tranquilamente invadir a memória compartilhada \parencite[seç.~2.3.1]{tanenbaum2016}.
+A opção correta é a B.
+
+\begin{question}{2017-31}
+Considere o programa a seguir, que ilustra a criação, execução e sincronização de duas \textit{threads}.
+\begin{Verbatim}[numbers=left]
+#include <stdio.h>
+#include <pthread.h>
+int x = 0, y = 0; // Variáveis compartilhadas
+void funcao1(void *threadarg) {
+    x = 1;
+    if (y == 0) printf("1 ");
+    pthread_exit(0);
+}
+void funcao2(void *threadarg) {
+    y = 1;
+    if (x == 0) printf("2 ");
+    pthread_exit(0);
+}
+void main() {
+    pthread_t t1, t2;
+    pthread_create(&t1, NULL, (void *)funcao1, NULL);
+    pthread_create(&t2, NULL, (void *)funcao2, NULL);
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+}
+\end{Verbatim}
+Ao final da execução da função \texttt{main}, será impresso
+\begin{spacing}{0.9}
+\begin{small}
+\begin{enumerate}[label=\Alph*)]
+    \item ambos os valores ``1'' e ``2''.
+    \item o valor ``1'', necessariamente.
+    \item o valor ``2'', necessariamente.
+    \item o valor ``1'', ou o valor ``2'', mas nunca ambos.
+    \item o valor ``1'', ou o valor ``2'', ou nenhum valor, mas nunca ambos.
+\end{enumerate}
+\end{small}
+\end{spacing}
+\end{question}
+
+Esse código ilustra o cenário clássico de uma condição de corrida em memória compartilhada sem travas,
+em que o resultado depende do entrelaçamento das instruções pelo escalonador.
+Temos três casos sequenciais possíveis \parencite[seç.~2.3]{tanenbaum2016}:
+\begin{itemize}
+    \item A \texttt{funcao1} executa inteiramente primeiro.
+    \texttt{x} recebe 1.
+    Verifica \texttt{y}, que ainda é 0, e imprime ``1''.
+    Em seguida, \texttt{funcao2} roda: \texttt{y} recebe 1.
+    Verifica \texttt{x} (agora 1), então não imprime nada.
+    \item A \texttt{funcao2} executa inteiramente primeiro.
+    \texttt{y} recebe 1.
+    Verifica \texttt{x} (ainda é 0), imprime ``2''.
+    Em seguida, \texttt{funcao1} roda: \texttt{x} recebe 1.
+    Verifica \texttt{y} (agora 1), e não imprime nada.
+    \item A execução se entrelaça e ambas as threads chegam às suas primeiras linhas antes de continuar.
+    A thread 1 executa \texttt{x = 1}.
+    O SO tira a CPU da thread 1 e entrega à thread 2, que executa \texttt{y = 1}.
+    A partir daí, qualquer ordem das avaliações dos comandos \texttt{if} resultará em falso,
+    pois tanto \texttt{x} quanto \texttt{y} já são 1.
+    O programa termina imprimindo nenhum valor.
+\end{itemize}
+
+O único cenário impossível sob o modelo de consistência estrita é a impressão de ambos ``1'' e ``2'',
+pois para que os dois \texttt{if} avaliem verdadeiro simultaneamente,
+nenhuma das \textit{threads} poderia ter executado sua primeira instrução de atribuição ainda,
+o que é logicamente paradoxal num fluxo de código linear, evidenciando que a resposta correta é a alternativa E.
+
+\printbibliography[heading=bibintoc]
+\end{document}
