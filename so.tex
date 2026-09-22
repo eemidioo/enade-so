@@ -98,6 +98,8 @@
 Este documento é destinado a estudantes de Ciência da Computação
 e contém um resumo de conceitos fundamentais de Sistemas Operacionais,
 baseado nas questões objetivas selecionadas das três provas de 2014, 2017 e 2021 do \citefield{enade}{title}.
+Ressalta-se que a reprodução das questões nem sempre é \textit{ipsis litteris}, ou seja,
+algumas adaptações são feitas para deixar o texto mais conciso ou consistente com o conteúdo apresentado.
 
 \section{Introdução}
 O Sistema Operacional (SO) é o software fundamental que gerencia o hardware do computador e fornece uma base para a execução de programas.
@@ -261,8 +263,8 @@ Com base nessa simulação, avalie as asserções a seguir e a relação propost
 \begin{enumerate}[label=\Roman*.]
     \item Na simulação proposta, é possível observar que os algoritmos FIFO e LRU apresentam o mesmo desempenho.
 \end{enumerate}
-\begin{center} \textbf{PORQUE} \end{center}
-\begin{enumerate}[label=\Roman*., start=2]
+\begin{center}\textbf{PORQUE}\end{center}
+\begin{enumerate}[label=\Roman*.,start=2]
     \item Os parâmetros utilizados na simulação são insuficientes para determinar a diferença de funcionamento entre os algoritmos.
 \end{enumerate}
 A respeito dessas asserções, assinale a opção correta.
@@ -567,7 +569,59 @@ Se ambas as \textit{threads} solicitarem o acesso às estruturas de dados na mes
 a condição de espera circular é eliminada \parencite[seç.~6.5]{tanenbaum2016}.
 A opção correta é a E.
 
-% TODO: 2021-17: exclusão mútua, região crítica, etc.
+\begin{Question}{2021-17}
+Durante parte do tempo, um processo está ocupado realizando computações internas e outras coisas que não levam a condições de corrida.
+No entanto, às vezes, um processo tem de acessar uma memória compartilhada ou arquivos,
+ou realizar outras tarefas críticas que podem levar a corridas.
+Essa parte do programa onde a memória compartilhada é acessada é chamada de \emph{região crítica} ou \emph{seção crítica}.
+Se conseguíssemos arranjar as coisas de maneira que dois processos jamais estivessem em suas regiões críticas ao mesmo tempo,
+poderíamos evitar as corridas.
+Embora essa exigência evite as condições de corrida,
+ela não é suficiente para garantir que processos em paralelo cooperem de modo correto e eficiente usando dados compartilhados.
+Precisamos que quatro condições se mantenham para chegar a uma boa solução.
+\begin{enumerate}
+    \item Dois processos jamais podem simultaneamente estar dentro de suas regiões críticas.
+    \item Nenhuma suposição pode ser feita a respeito de velocidades ou de número de CPUs.
+    \item Nenhum processo executando fora de sua região crítica pode bloquear qualquer processo.
+    \item Nenhum processo deve ser obrigado a esperar eternamente para entrar em sua região crítica.
+\end{enumerate}
+\vspace{-0.5em}
+\begin{flushright}
+    \scriptsize
+    TANENBAUM, A. S. \textbf{Sistemas Operacionais Modernos}.\\
+    4. ed., São Paulo: Pearson, p. 83, 2016 (adaptado).
+\end{flushright}
+Considerando o texto e a figura [omitida] apresentados, avalie as asserções a seguir e a relação proposta entre elas.
+\begin{enumerate}[label=\Roman*.]
+    \item Em algumas situações, a exclusão mútua pode ser obtida por meio da desabilitação da interrupção controlada pelo Sistema Operacional,
+    não sendo permitido que o seu controle seja feito pelo usuário.
+\end{enumerate}
+\begin{center}\textbf{PORQUE}\end{center}
+\begin{enumerate}[label=\Roman*.,start=2]
+    \item A desabilitação da interrupção é uma técnica que pode impedir que o processador que está executando um processo
+    em sua região crítica seja interrompido para executar outro código,
+    sendo mais eficiente em sistemas de multiprocessadores devido a quantidade de processos concorrentes.
+\end{enumerate}
+A respeito dessas asserções, assinale a opção correta.
+\begin{QuestionOptions}
+    \item As asserções I e II são proposições verdadeiras, e a II é uma justificativa correta da I.
+    \item As asserções I e II são proposições verdadeiras, mas a II não é uma justificativa correta da I.
+    \item A asserção I é uma proposição verdadeira, e a II é uma proposição falsa.
+    \item A asserção I é uma proposição falsa, e a II é uma proposição verdadeira.
+    \item As asserções I e II são proposições falsas.
+\end{QuestionOptions}
+\end{Question}
+
+A asserção I é verdadeira.
+O próprio sistema operacional pode desabilitar interrupções temporariamente ao atualizar estruturas internas do núcleo
+para garantir exclusão mútua em um único processador;
+tal poder nunca é concedido ao modo usuário, pois um processo malicioso poderia monopolizar a CPU indefinidamente.
+
+A asserção II é falsa.
+Desabilitar interrupções afeta apenas o núcleo/CPU que executou a instrução.
+Em sistemas multiprocessados, outros núcleos continuam executando em paralelo e acessando a memória compartilhada normalmente,
+tornando essa técnica ineficaz para garantir exclusão mútua entre múltiplos processadores \parencite[seç.~2.3.1--3]{tanenbaum2016}.
+A opção correta é a C.
 
 \printbibliography[heading=bibintoc]
 \end{document}
