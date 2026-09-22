@@ -9,7 +9,7 @@
 \usepackage{mathtools}
 \usepackage{enumitem}
 \usepackage{fancyvrb}
-\usepackage[dvipsnames]{xcolor}
+\usepackage[dvipsnames,table]{xcolor}
 \usepackage{float}
 
 % citations
@@ -108,7 +108,8 @@ Quando um computador executa múltiplas tarefas de forma intercalada,
 dizemos que há multiprogramação e que estamos lidando com \emph{sistemas concorrentes}.
 Nesse cenário, o SO gerencia a ilusão de que vários processos estão rodando ao mesmo tempo alternando rapidamente a CPU entre eles.
 Com o advento dos processadores de múltiplos núcleos, alcançamos também o \emph{processamento paralelo},
-onde instruções de diferentes processos ou threads são executadas literalmente no mesmo instante de tempo físico, em núcleos físicos distintos.
+onde instruções de diferentes processos ou threads são executadas literalmente no mesmo instante de tempo físico,
+em núcleos físicos distintos.
 O gerenciamento adequado da concorrência e do paralelismo é um dos pilares modernos
 do design de sistemas operacionais \parencite[cap.~2]{tanenbaum2016}.
 
@@ -154,12 +155,14 @@ assinale a opção que apresenta um algoritmo de escalonamento seguido do tipo d
 Para resolver essa questão, devemos relembrar as categorias de escalonamento citadas por \textcite[seç.~2.4]{tanenbaum2016}.
 Em sistemas em lote (\textit{batch}), onde não há usuários esperando resposta imediata,
 algoritmos como ``Primeiro a chegar, primeiro a ser servido (FIFO)'' e ``Tarefa mais curta primeiro (SJF)'' são adequados.
-Em sistemas interativos, onde o tempo de resposta é crucial, utilizam-se o \textit{Round-Robin} (chave circular) e o Escalonamento por Prioridades.
+Em sistemas interativos, onde o tempo de resposta é crucial, utilizam-se o \textit{Round-Robin} (chave circular)
+e o Escalonamento por Prioridades.
 Em sistemas de tempo real, o foco principal é o cumprimento rigoroso de prazos (\textit{deadlines}),
 utilizando-se algoritmos estáticos (tomam decisões antes do sistema ser executado)
 ou dinâmicos (tomam decisões em tempo de execução) específicos para esse fim.
 
-Analisando as opções: a opção A cita FILO, o que seria uma pilha, inadequado para escalonamento justo;
+Analisando as opções:
+a opção A cita FILO, o que seria uma pilha, inadequado para escalonamento justo;
 a opção B inverte RMS (tempo real) para sistemas em lote;
 a opção C sugere tarefa mais curta para sistemas interativos (na verdade, é para lote);
 a opção D sugere \textit{Round-Robin} para tempo real (o que não garante cumprimento de prazos rígidos).
@@ -223,7 +226,8 @@ Com base na tabela apresentada, avalie as afirmações a seguir.
 \end{Question}
 
 A afirmação I é falsa.
-O tamanho de cada quadro é de $1 \unit{Kbyte}$ (considerando $\unit{K} = 1024$), o que requer 10 bits de deslocamento ($2^{10} = 1024 \unit{bytes}$).
+O tamanho de cada quadro é de $1 \unit{Kbyte}$ (considerando $\unit{K} = 1024$),
+o que requer 10 bits de deslocamento ($2^{10} = 1024 \unit{bytes}$).
 Observando a tabela, o número do quadro utiliza 4 bits (de \texttt{0000} a \texttt{1111}).
 Portanto, o endereço físico completo é a junção dos 4 bits do quadro com os 10 bits de deslocamento,
 totalizando 14 bits, e não 13.
@@ -232,7 +236,7 @@ A afirmação II é verdadeira.
 A paginação divide a memória em blocos de tamanho fixo,
 permitindo que qualquer quadro livre receba uma página de qualquer processo.
 Isso elimina a fragmentação externa,
-restando apenas a possibilidade de fragmentação interna na última página do processo \parencite[seç.~3.3,seç.~3.5.3,p.196]{tanenbaum2016}.
+restando apenas a possibilidade de fragmentação interna na última página do processo \parencite[seç.~3.3, seç.~3.5.3, p.~196]{tanenbaum2016}.
 
 A afirmação III é falsa.
 Como a tabela possui 8 páginas (índices de 0 a 7),
@@ -339,8 +343,14 @@ As abordagens para tratar o problema envolvem a ignorância do evento
 por exemplo, se acontece uma vez a cada cinco anos, sem grandes prejuízos e com uma remediação suficiente),
 a detecção seguida de recuperação, a evitação pela alocação cuidadosa de recursos
 e a prevenção pela negação de uma das quatro condições.
-Uma trava (\textit{lock}) é um dos mecanismos utilizados para garantir a exclusão mútua,
-permitindo que apenas uma thread ou processo acesse um recurso compartilhado ou região crítica por vez \parencite[cap.~2,6]{tanenbaum2016}.
+
+Uma trava (\textit{lock}) garante a exclusão mútua ao permitir que apenas uma \textit{thread} por vez acesse um recurso compartilhado.
+Já os \emph{semáforos} utilizam um contador manipulado por operações atômicas
+(\texttt{down} e \texttt{up}~--- isto é, executadas como uma unidade indivisível de instrução,
+sem possibilidade de interrupção ou interferência de outras \textit{threads});
+ao contrário dos \textit{locks},
+eles podem atuar tanto no modo binário (funcionando como uma trava) quanto de contagem,
+permitindo gerenciar o acesso simultâneo a um número limitado de instâncias de um recurso \parencite[cap.~2,6]{tanenbaum2016}.
 
 \subsection{Exemplos}
 Seguem agora questões resolvidas do Enade que envolvem \textit{threads}.
@@ -509,7 +519,54 @@ pois para que os dois \texttt{if} avaliem verdadeiro simultaneamente,
 nenhuma das \textit{threads} poderia ter executado sua primeira instrução de atribuição ainda,
 evidenciando que a resposta correta é a opção E.
 
-% TODO: 2017-35: acesso concorrente.
+\begin{Question}{2017-35}
+Um programador inexperiente está desenvolvendo um sistema \textit{multithread} que possui duas estruturas
+de dados diferentes, $E_1$ e $E_2$, as quais armazenam valores inteiros. O acesso concorrente a essas
+estruturas é controlado por semáforos. Durante sua execução, o sistema dispara as \textit{threads} $T_1$ e $T_2$
+simultaneamente. A tabela a seguir possibilita uma visão em linhas gerais dos algoritmos dessas \textit{threads}.
+\begin{center}
+\small
+\begin{tabular}{|l|l|}\hline
+\rowcolor{lightgray}\textbf{$T_1$} & \textbf{$T_2$} \\\hline
+Aloca $E_1$ & Aloca $E_2$ \\\hline
+Calcula a média $M_1$ dos valores de $E_1$ & Calcula a soma $S_1$ de todos os valores de $E_2$ \\\hline
+Aloca $E_2$ & Aloca $E_1$ \\\hline
+Calcula a média $M_2$ dos valores de $E_2$ & Calcula a soma $S_2$ de todos os valores de $E_1$ \\\hline
+Calcula $M_3 = M_1 + M_2$ & Calcula $S_3 = \lvert S_1 - S_2 \rvert$ \\\hline
+Soma $M_3$ em todos os valores de $E_2$ & Subtrai $S_2$ de todos os valores de $E_1$ \\\hline
+Libera $E_1$ & Libera $E_2$ \\\hline
+Libera $E_2$ & Libera $E_1$ \\\hline
+\end{tabular}
+\end{center}
+Durante a execução do referido programa, é possível que
+\begin{QuestionOptions}
+    \item não ocorra \textit{deadlock},
+    porque a sequência de alocação dos recursos impede naturalmente o problema.
+    \item ocorra \textit{deadlock},
+    que pode ser evitado se o programador tomar o cuidado de não executar cálculos entre um pedido de alocação e outro.
+    \item ocorra \textit{deadlock},
+    sendo a probabilidade dessa ocorrência tão baixa e sua consequência tão inócua que não haverá comprometimento do programa.
+    \item não ocorra \textit{deadlock},
+    desde que o programador use semáforos para controlar o acesso às estruturas de dados,
+    o que é suficiente para evitar o problema.
+    \item ocorra \textit{deadlock},
+    que pode ser evitado se o programador tomar o cuidado de solicitar
+    o acesso às estruturas de dados na mesma ordem em ambas as \textit{threads}.
+\end{QuestionOptions}
+\end{Question}
+
+Analisando a sequência de alocação:
+a \textit{thread} $T_1$ solicita o recurso $E_1$ e, em seguida, $E_2$;
+já a \textit{thread} $T_2$ solicita $E_2$ e, posteriormente, $E_1$.
+Se $T_1$ alocar $E_1$ no mesmo instante em que $T_2$ alocar $E_2$,
+$T_1$ ficará bloqueada aguardando $E_2$, enquanto $T_2$ ficará bloqueada aguardando $E_1$,
+caracterizando uma espera circular e resultando em um \textit{deadlock}.
+
+Para prevenir esse problema, uma estratégia clássica de prevenção consiste em impor uma ordenação global na alocação de recursos.
+Se ambas as \textit{threads} solicitarem o acesso às estruturas de dados na mesma ordem (por exemplo, alocando $E_1$ antes de $E_2$),
+a condição de espera circular é eliminada \parencite[seç.~6.5]{tanenbaum2016}.
+A opção correta é a E.
+
 % TODO: 2021-17: exclusão mútua, região crítica, etc.
 
 \printbibliography[heading=bibintoc]
